@@ -29,6 +29,15 @@ internal abstract class Day1
 
     private static int Calibrate(string input)
     {
+        input = input.Replace("one", "o1ne");
+        input = input.Replace("two", "t2wo");
+        input = input.Replace("three", "t3hree");
+        input = input.Replace("four", "f4our");
+        input = input.Replace("five", "f5ive");
+        input = input.Replace("six", "s6ix");
+        input = input.Replace("seven", "s7even");
+        input = input.Replace("eight", "e8ight");
+        input = input.Replace("nine", "n9ine");
         var first = -1;
         var last = -1;
         foreach (var c in input.Where(char.IsNumber))
