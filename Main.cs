@@ -10,6 +10,7 @@ public static class MainClass
         //Console.WriteLine(Day1.Calibration(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day1.txt"));
         Console.WriteLine("Day 2:");
         Console.WriteLine(Day2.Parse(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt", 12, 13, 14));
+        Console.WriteLine(Day2.MinimalPower(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt"));
     }
 }
 
@@ -18,6 +19,20 @@ internal abstract partial class Day2
     private static readonly Regex RED_REGEX = RedRegex();
     private static readonly Regex GREEN_REGEX = GreenRegex();
     private static readonly Regex BLUE_REGEX = BlueRegex();
+
+    public static int MinimalPower(string path)
+    {
+        return Util.ReadFileLines(path).Select(Minimal).Select(lineResult => lineResult.Item1 * lineResult.Item2 * lineResult.Item3).Sum();
+    }
+
+    private static (int, int, int) Minimal(string line)
+    {
+        var parsed = line.Split(";").Select(ParseOne).ToList();
+        var red = parsed.Select(e => e.Item1).Max();
+        var green = parsed.Select(e => e.Item2).Max();
+        var blue = parsed.Select(e => e.Item3).Max();
+        return (red, green, blue);
+    }
 
     public static int Parse(string path, int maxRed, int maxGreen, int maxBlue)
     {
@@ -29,17 +44,17 @@ internal abstract partial class Day2
         return line.Split(";").Select(ParseOne).All(e => IsGamePossible(e.Item1, e.Item2, e.Item3, maxRed, maxGreen, maxBlue));
     }
 
+    private static bool IsGamePossible(int red, int green, int blue, int maxRed, int maxGreen, int maxBlue)
+    {
+        return red <= maxRed && green <= maxGreen && blue <= maxBlue;
+    }
+
     private static (int, int, int) ParseOne(string input)
     {
         var red = MatchAndToInt(RED_REGEX, input, " red");
         var green = MatchAndToInt(GREEN_REGEX, input, " green");
         var blue = MatchAndToInt(BLUE_REGEX, input, " blue");
         return (red, green, blue);
-    }
-    
-    private static bool IsGamePossible(int red, int green, int blue, int maxRed, int maxGreen, int maxBlue)
-    {
-        return red <= maxRed && green <= maxGreen && blue <= maxBlue;
     }
 
     private static int MatchAndToInt(Regex regex, string input, string suffix)
@@ -49,8 +64,10 @@ internal abstract partial class Day2
 
     [GeneratedRegex("(\\d)+ red", RegexOptions.Compiled)]
     private static partial Regex RedRegex();
+
     [GeneratedRegex("(\\d)+ green", RegexOptions.Compiled)]
     private static partial Regex GreenRegex();
+
     [GeneratedRegex("(\\d)+ blue", RegexOptions.Compiled)]
     private static partial Regex BlueRegex();
 }
