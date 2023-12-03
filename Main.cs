@@ -8,9 +8,89 @@ public static class MainClass
     {
         //Console.WriteLine("Day 1:");
         //Console.WriteLine(Day1.Calibration(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day1.txt"));
-        Console.WriteLine("Day 2:");
-        Console.WriteLine(Day2.Parse(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt", 12, 13, 14));
-        Console.WriteLine(Day2.MinimalPower(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt"));
+        //Console.WriteLine("Day 2:");
+        //Console.WriteLine(Day2.Parse(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt", 12, 13, 14));
+        //Console.WriteLine(Day2.MinimalPower(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt"));
+        Console.WriteLine("Day 3:");
+        Console.WriteLine(Day3.PartNumbers(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day3.txt"));
+    }
+}
+
+internal abstract class Day3
+{
+    private const char BLANK = '.';
+
+    public static int PartNumbers(string path)
+    {
+        var input = Util.ReadFileLines(path);
+        return input.Select((l, i) => ParseLine(l).Where(e => IsNumberAdjacentToSymbol(input, i, e.Item2, e.Item3)).Sum(element => element.Item1)).Sum();
+    }
+
+    private static IEnumerable<(int, int, int)> ParseLine(string line)
+    {
+        var list = new List<(int, int, int)>();
+        int current = -1, start = -1, end = -1;
+        for (var i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            if (char.IsNumber(c))
+            {
+                var number = int.Parse(c.ToString());
+                current = current == -1 ? number : current * 10 + number;
+                start = start == -1 ? i : start;
+                end = end == -1 ? i : end + 1;
+            }
+            else
+            {
+                if (current == -1)
+                    continue;
+                list.Add((current, start, end));
+                current = start = end = -1;
+            }
+        }
+        if (current != -1 && start != -1 && end != -1)
+        {
+            list.Add((current, start, end));
+        }
+        return list;
+    }
+    
+    private static bool IsNumberAdjacentToSymbol(IReadOnlyList<string> input, int line, int startX, int endX)
+    {
+        var lineLength = input[0].Length;
+        if (startX > 0)
+        {
+            for (var i = -1; i <= 1; i++)
+            {
+                if (input[Math.Min(Math.Max(0, line + i), input.Count - 1)][startX - 1] != BLANK)
+                    return true;
+            }
+        }
+        if (endX < lineLength - 1)
+        {
+            for (var i = -1; i <= 1; i++)
+            {
+                if (input[Math.Min(Math.Max(0, line + i), input.Count - 1)][endX + 1] != BLANK)
+                    return true;
+            }
+        }
+        if (line > 0)
+        {
+            for (var i = startX; i <= endX; i++)
+            {
+                if (input[line - 1][i] != BLANK)
+                    return true;
+            }
+        }
+        if (line < input.Count - 1)
+        {
+            for (var i = startX; i <= endX; i++)
+            {
+                if (input[line + 1][i] != BLANK)
+                    return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -98,7 +178,7 @@ internal abstract class Day1
 
 internal abstract class Util
 {
-    public static IEnumerable<string> ReadFileLines(string path)
+    public static List<string> ReadFileLines(string path)
     {
         var list = new List<string>();
         using TextReader tr = File.OpenText(path);
