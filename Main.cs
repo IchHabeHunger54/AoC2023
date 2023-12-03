@@ -13,17 +13,42 @@ public static class MainClass
         //Console.WriteLine(Day2.MinimalPower(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day2.txt"));
         Console.WriteLine("Day 3:");
         Console.WriteLine(Day3.PartNumbers(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day3.txt"));
+        Console.WriteLine(Day3.GearValues(@"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day3.txt"));
     }
 }
 
 internal abstract class Day3
 {
     private const char BLANK = '.';
+    private const char GEAR = '*';
+
+    public static int GearValues(string path)
+    {
+        var input = Util.ReadFileLines(path);
+        var gears = new Dictionary<(int, int), List<int>>();
+        for (var i = 0; i < input.Count; i++)
+        {
+            var line = input[i];
+            var parsed = ParseLine(line);
+            foreach (var element in parsed)
+            {
+                var pos = IsNumberAdjacentToSymbol(input, i, element.Item2, element.Item3, c => c == GEAR);
+                if (pos == null)
+                    continue;
+                if (!gears.ContainsKey(pos.Value))
+                {
+                    gears[pos.Value] = new List<int>();
+                }
+                gears[pos.Value].Add(element.Item1);
+            }
+        }
+        return gears.Select(entry => entry.Value).Where(value => value.Count == 2).Sum(value => value[0] * value[1]);
+    }
 
     public static int PartNumbers(string path)
     {
         var input = Util.ReadFileLines(path);
-        return input.Select((l, i) => ParseLine(l).Where(e => IsNumberAdjacentToSymbol(input, i, e.Item2, e.Item3)).Sum(element => element.Item1)).Sum();
+        return input.Select((l, i) => ParseLine(l).Where(e => IsNumberAdjacentToSymbol(input, i, e.Item2, e.Item3, c => c != BLANK) != null).Sum(element => element.Item1)).Sum();
     }
 
     private static IEnumerable<(int, int, int)> ParseLine(string line)
@@ -55,42 +80,48 @@ internal abstract class Day3
         return list;
     }
     
-    private static bool IsNumberAdjacentToSymbol(IReadOnlyList<string> input, int line, int startX, int endX)
+    private static (int, int)? IsNumberAdjacentToSymbol(IReadOnlyList<string> input, int line, int startX, int endX, Predicate<char> predicate)
     {
         var lineLength = input[0].Length;
         if (startX > 0)
         {
             for (var i = -1; i <= 1; i++)
             {
-                if (input[Math.Min(Math.Max(0, line + i), input.Count - 1)][startX - 1] != BLANK)
-                    return true;
+                var y = Math.Min(Math.Max(0, line + i), input.Count - 1);
+                var x = startX - 1;
+                if (predicate.Invoke(input[y][x]))
+                    return (y, x);
             }
         }
         if (endX < lineLength - 1)
         {
             for (var i = -1; i <= 1; i++)
             {
-                if (input[Math.Min(Math.Max(0, line + i), input.Count - 1)][endX + 1] != BLANK)
-                    return true;
+                var y = Math.Min(Math.Max(0, line + i), input.Count - 1);
+                var x = endX + 1;
+                if (input[y][x] != BLANK)
+                    return (y, x);
             }
         }
         if (line > 0)
         {
             for (var i = startX; i <= endX; i++)
             {
-                if (input[line - 1][i] != BLANK)
-                    return true;
+                var y = line - 1;
+                if (input[y][i] != BLANK)
+                    return (y, i);
             }
         }
         if (line < input.Count - 1)
         {
             for (var i = startX; i <= endX; i++)
             {
-                if (input[line + 1][i] != BLANK)
-                    return true;
+                var y = line + 1;
+                if (input[y][i] != BLANK)
+                    return (y, i);
             }
         }
-        return false;
+        return null;
     }
 }
 
