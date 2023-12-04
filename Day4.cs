@@ -8,19 +8,15 @@ public class Day4 : Day
 
     protected override object Part1(string path)
     {
-        var result = 0d;
-        foreach (var line in Util.ReadFileLines(path))
-        {
-            var split = line.Split(":")[1].Split("|");
-            var left = SplitOnSpace(split[0]);
-            var right = SplitOnSpace(split[1]);
-            var overlap = GetOverlap(left, right).Count;
-            if (overlap > 0)
-            {
-                result += Math.Pow(2, overlap - 1);
-            }
-        }
-        return result;
+        return Util.ReadFileLines(path).Select(GetScore).Where(e => e > 0).Select(overlap => Math.Pow(2, overlap - 1)).Sum();
+    }
+
+    private static int GetScore(string input)
+    {
+        var split = input.Split(":")[1].Split("|");
+        var left = SplitOnSpace(split[0]);
+        var right = SplitOnSpace(split[1]);
+        return left.Where(right.Contains).Count();
     }
 
     private static IEnumerable<string> SplitOnSpace(string s)
@@ -28,13 +24,27 @@ public class Day4 : Day
         return s.Split(" ").ToList().Where(e => !string.IsNullOrEmpty(e));
     }
 
-    private static List<T> GetOverlap<T>(IEnumerable<T> list1, IEnumerable<T> list2)
-    {
-        return list1.Where(list2.Contains).ToList();
-    }
-
     protected override object Part2(string path)
     {
-        throw new NotImplementedException();
+        var lines = Util.ReadFileLines(path);
+        var cards = new Dictionary<int, int>();
+        var result = 0;
+        for (var i = 0; i < lines.Count; i++)
+        {
+            cards.Add(i, 1);
+        }
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var score = GetScore(line);
+            for (var j = 1; j <= score; j++)
+            {
+                var index = i + j;
+                if (index > cards.Count) break;
+                cards[index] += cards[i];
+            }
+            result += cards[i];
+        }
+        return result;
     }
 }
