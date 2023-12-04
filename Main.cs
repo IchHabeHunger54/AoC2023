@@ -7,16 +7,17 @@ public static class MainClass
         new Day1().Run();
         new Day2().Run();
         new Day3().Run();
+        new Day4().Run();
     }
 }
 
 public abstract class Day
 {
-    private readonly int day;
+    private readonly int _day;
 
-    public Day(int day)
+    protected Day(int day)
     {
-        this.day = day;
+        _day = day;
     }
 
     protected abstract object Part1(string path);
@@ -25,14 +26,14 @@ public abstract class Day
 
     public void Run()
     {
-        var path = @"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day" + day + ".txt";
-        Console.WriteLine("Day " + day + ":");
+        var path = @"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day" + _day + ".txt";
+        Console.WriteLine("Day " + _day + ":");
         Console.WriteLine(Part1(path));
         Console.WriteLine(Part2(path));
     }
 }
 
-internal abstract class Util
+public abstract class Util
 {
     public static List<string> ReadFileLines(string path)
     {
