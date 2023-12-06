@@ -48,35 +48,67 @@ public class Day5 : Day
         return result;
     }
 
+    // Credit: u/Salad-Extension
     protected override object Part2(string path)
     {
-        var lines = Util.ReadFileLines(path);
-        var maps = GetMaps(lines).ToList();
-        var seeds = lines[0].Split(" ")[1..].Select(long.Parse).ToList();
-        if (seeds.Count % 2 != 0)
-            throw new FormatException();
-        var ranges = new List<(long, long)>();
+        var input = Util.ReadFileLines(path);
+        var seeds = input[0].Split(' ').Skip(1).Select(long.Parse).ToList();
+        var maps = new List<List<(long from, long to, long adjustment)>>();
+        List<(long from, long to, long adjustment)>? currmap = null;
+        foreach (var line in input.Skip(2))
+        {
+            if (line.EndsWith(':'))
+            {
+                currmap = new List<(long from, long to, long adjustment)>();
+                continue;
+            }
+            if (line.Length == 0 && currmap != null)
+            {
+                maps.Add(currmap);
+                currmap = null;
+                continue;
+            }
+            var nums = line.Split(' ').Select(long.Parse).ToArray();
+            currmap!.Add((nums[1], nums[1] + nums[2] - 1, nums[0] - nums[1]));
+        }
+        if (currmap != null)
+        {
+            maps.Add(currmap);
+        }
+        var ranges = new List<(long from, long to)>();
         for (var i = 0; i < seeds.Count; i += 2)
         {
-            var start = seeds[i];
-            ranges.Add((start, start + seeds[i + 1]));
+            ranges.Add((from: seeds[i], to: seeds[i] + seeds[i + 1] - 1));
         }
         foreach (var map in maps)
         {
-            var newRanges = new List<(long, long)>();
-            foreach (var range in ranges)
+            var orderedmap = map.OrderBy(x => x.from).ToList();
+            var newranges = new List<(long from, long to)>();
+            foreach (var r in ranges)
             {
-                newRanges.AddRange(map.Get(range).Distinct());
+                var range = r;
+                foreach (var mapping in orderedmap)
+                {
+                    if (range.from < mapping.from)
+                    {
+                        newranges.Add((range.from, Math.Min(range.to, mapping.from - 1)));
+                        range.from = mapping.from;
+                        if (range.from > range.to)
+                            break;
+                    }
+                    if (range.from > mapping.to)
+                        continue;
+                    newranges.Add((range.from + mapping.adjustment, Math.Min(range.to, mapping.to) + mapping.adjustment));
+                    range.from = mapping.to + 1;
+                    if (range.from > range.to)
+                        break;
+                }
+                if (range.from <= range.to)
+                    newranges.Add(range);
             }
-            ranges = newRanges;
+            ranges = newranges;
         }
-        return ranges.Select(e => e.Item1).Select(l =>
-        {
-            return maps.Aggregate(l, (current, map) =>
-            {
-                return map.Get(current);
-            });
-        }).Min();
+        return ranges.Min(r => r.from);
     }
 }
 
@@ -87,38 +119,17 @@ internal class Map
     public void Add(long sourceStart, long destStart, long rangeLength)
     {
         _entries.Add(new Entry(sourceStart, destStart, rangeLength));
-        _entries.Sort();
     }
 
     public long Get(long i)
     {
         foreach (var entry in _entries.Where(entry => entry.IsInRange(i)))
-        {
             return entry.GetFor(i);
-        }
         return i;
-    }
-
-    public IEnumerable<(long, long)> Get((long, long) range)
-    {
-        var result = new List<(long, long)>();
-        foreach (var intersect in _entries.Select(e => e.Intersect(range)).Where(e => e.Item1 < e.Item2))
-        {
-            if (intersect.Item1 > range.Item1)
-            {
-                result.Add((range.Item1, intersect.Item1));
-            }
-            result.Add(intersect);
-            if (range.Item2 > intersect.Item2)
-            {
-                result.Add((intersect.Item2, range.Item2));
-            }
-        }
-        return result.Count == 0 ? new List<(long, long)> { range } : result;
     }
 }
 
-internal class Entry : IComparable
+internal class Entry
 {
     private readonly long _sourceStart;
     private readonly long _destStart;
@@ -144,11 +155,5 @@ internal class Entry : IComparable
     public (long, long) Intersect((long, long) l)
     {
         return (Math.Max(_destStart, l.Item1), Math.Min(_destStart + _rangeLength, l.Item2));
-    }
-
-    int IComparable.CompareTo(object? o)
-    {
-        var e = (Entry) o;
-        return _destStart.CompareTo(e._destStart);
     }
 }
