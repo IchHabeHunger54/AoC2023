@@ -1,4 +1,6 @@
-﻿namespace AoC2023;
+﻿using System.Diagnostics;
+
+namespace AoC2023;
 
 public static class MainClass
 {
@@ -30,8 +32,14 @@ public abstract class Day
     {
         var path = @"C:\Users\IHH\data\dev\Other\AoC2023\AoC2023\input\day" + _day + ".txt";
         Console.WriteLine("Day " + _day + ":");
+        Console.WriteLine("Part 1:");
+        var watch = Stopwatch.StartNew();
         Console.WriteLine(Part1(path));
+        Console.WriteLine($"Part 1 completed in {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine("Part 2:");
+        watch = Stopwatch.StartNew();
         Console.WriteLine(Part2(path));
+        Console.WriteLine($"Part 2 completed in {watch.ElapsedMilliseconds}ms");
     }
 }
 
