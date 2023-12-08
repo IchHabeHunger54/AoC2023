@@ -13,6 +13,7 @@ public static class MainClass
         new Day5().Run();
         new Day6().Run();
         new Day7().Run();
+        new Day8().Run();
     }
 }
 
