@@ -14,6 +14,7 @@ public static class MainClass
         new Day6().Run();
         new Day7().Run();
         new Day8().Run();
+        new Day9().Run();
     }
 }
 
@@ -49,12 +50,6 @@ public abstract class Util
 {
     public static List<string> ReadFileLines(string path)
     {
-        var list = new List<string>();
-        using TextReader tr = File.OpenText(path);
-        while (tr.Peek() != -1)
-        {
-            list.Add(tr.ReadLine()!);
-        }
-        return list;
+        return File.ReadAllLines(path).ToList();
     }
 }
