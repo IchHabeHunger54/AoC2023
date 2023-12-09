@@ -1,6 +1,8 @@
+using System.Text.RegularExpressions;
+
 namespace AoC2023;
 
-public class Day8 : Day
+public partial class Day8 : Day
 {
     public Day8() : base(8)
     {
@@ -36,13 +38,45 @@ public class Day8 : Day
 
     protected override object Part2(string path)
     {
-        throw new NotImplementedException();
+        var lines = Util.ReadFileLines(path).ToArray();
+        var moves = lines[0].ToCharArray();
+        var nodes = lines[2..].Select(line => MyRegex().Match(line)).Select(m => (m.Groups[1].Value, (m.Groups[2].Value, m.Groups[3].Value))).ToDictionary(e => e.Item1, e => e.Item2);
+        return nodes.Keys.Where(k => k[2] == 'A').Select(p => PathLength(moves, nodes, p, "Z")).Aggregate(Lcm);
     }
+
+    private static long PathLength(IReadOnlyList<char> moves, IReadOnlyDictionary<string, (string Left, string Right)> nodes, string node, string ending)
+    {
+        long count = 0;
+        var curr = 0;
+        while (!node.EndsWith(ending))
+        {
+            node = moves[curr] == 'L' ? nodes[node].Left : nodes[node].Right;
+            curr = (curr + 1) % moves.Count;
+            count++;
+        }
+        return count;
+    }
+
+    private static long Gcd(long a, long b)
+    {
+        while (b != 0)
+        {
+            var remainder = a % b;
+            a = b;
+            b = remainder;
+        }
+        return a;
+    }
+
+    private static long Lcm(long a, long b) => a * b / Gcd(a, b);
+
+    [GeneratedRegex(@"(\w+) = \((\w+), (\w+)\)")]
+    private static partial Regex MyRegex();
 }
 
 internal class Node
 {
-    public static readonly Dictionary<string, Node> NODES = new();
+    private static readonly Dictionary<string, Node> NODES = new();
     public readonly string Name;
     private readonly string _left;
     private readonly string _right;
